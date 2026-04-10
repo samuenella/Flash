@@ -1,0 +1,18 @@
+export const icons = {
+    compass: require("@/assets/icons/compass.png"),
+    close_button: require("@/assets/icons/close_button.png"),
+    tick_button: require("@/assets/icons/tick_button.png"),
+    skip_button: require("@/assets/icons/skip_button.png"),
+    menu_button: require("@/assets/icons/menu_black.png"),
+    button: require("@/assets/icons/button.png"),
+    tick_label: require("@/assets/icons/tick_label.png"),
+    cross_label: require("@/assets/icons/cross_label.png"),
+    prev_button: require("@/assets/icons/prev_button.png"),
+    back_button: require("@/assets/icons/back_button.png"),
+    finish_button: require("@/assets/icons/finish_button.png"),
+    highlight_landmark_on: require("@/assets/icons/highlight_landmark_on.png"),
+    highlight_landmark_off: require("@/assets/icons/highlight_landmark_off.png"),
+    quit_button: require("@/assets/icons/quit_button.png"),
+    empty_button: require("@/assets/icons/empty_button.png"),
+    splits_button: require("@/assets/icons/splits_button.png"),
+};
