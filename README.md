@@ -51,9 +51,9 @@ How fast can you recognize Singapore?
 
 **Note: This app only supports Android, iOS is not supported**
 
-Installation can be done either through the Google Play Store, or downloading the apk file directly.
+Installation can be done through the Google Play Store. If that doesn't work, the apk file can be downloaded directly.
 
-### Google Play Store
+### Google Play Store (recommended)
 
 Enter [com.samuenella.flash](https://play.google.com/store/apps/details?id=com.samuenella.flash&hl=en_SG) into the search box to locate the application
 
