@@ -1693,8 +1693,7 @@
             "filter": ["==", ["get", "oneway"], 1],
             "layout": {
                 "icon-image": "arrow",
-                "symbol-placement": "line",
-                "visibility": "none"
+                "symbol-placement": "line"
             }
         },
         {
@@ -1707,8 +1706,7 @@
             "layout": {
                 "icon-image": "arrow",
                 "icon-rotate": 180,
-                "symbol-placement": "line",
-                "visibility": "none"
+                "symbol-placement": "line"
             }
         },
         {
@@ -2780,8 +2778,7 @@
                     12,
                     14,
                     13
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "hsl(30,23%,62%)",
@@ -2835,8 +2832,7 @@
                     12,
                     14,
                     13
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "#666",
@@ -2880,8 +2876,7 @@
                     12,
                     14,
                     13
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "#666",
@@ -2922,8 +2917,7 @@
                 "text-field": ["to-string", ["get", "ref"]],
                 "text-font": ["Noto Sans Regular"],
                 "text-rotation-alignment": "viewport",
-                "text-size": 10,
-                "visibility": "none"
+                "text-size": 10
             }
         },
         {
@@ -2966,8 +2960,7 @@
                 "text-field": ["to-string", ["get", "ref"]],
                 "text-font": ["Noto Sans Regular"],
                 "text-rotation-alignment": "viewport",
-                "text-size": 10,
-                "visibility": "none"
+                "text-size": 10
             }
         },
         {
@@ -3008,8 +3001,7 @@
                 "text-field": ["to-string", ["get", "ref"]],
                 "text-font": ["Noto Sans Regular"],
                 "text-rotation-alignment": "viewport",
-                "text-size": 10,
-                "visibility": "none"
+                "text-size": 10
             }
         },
         {
@@ -3086,8 +3078,7 @@
                     12,
                     10
                 ],
-                "text-transform": "uppercase",
-                "visibility": "none"
+                "text-transform": "uppercase"
             },
             "paint": {
                 "text-color": "#333",
@@ -3130,8 +3121,7 @@
                     10,
                     11,
                     12
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "#000",
@@ -3174,8 +3164,7 @@
                     12,
                     11,
                     14
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "#000",
@@ -3216,8 +3205,7 @@
                     8,
                     14
                 ],
-                "text-transform": "uppercase",
-                "visibility": "none"
+                "text-transform": "uppercase"
             },
             "paint": {
                 "text-color": "#333",
@@ -3267,8 +3255,7 @@
                     13,
                     11,
                     18
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "#000",
@@ -3318,8 +3305,7 @@
                     14,
                     11,
                     20
-                ],
-                "visibility": "none"
+                ]
             },
             "paint": {
                 "text-color": "#000",
@@ -3354,8 +3340,7 @@
                 ],
                 "text-font": ["Noto Sans Bold"],
                 "text-max-width": 6.25,
-                "text-size": ["interpolate", ["linear"], ["zoom"], 3, 9, 7, 17],
-                "visibility": "none"
+                "text-size": ["interpolate", ["linear"], ["zoom"], 3, 9, 7, 17]
             },
             "paint": {
                 "text-color": "#000",
@@ -3389,8 +3374,7 @@
                 ],
                 "text-font": ["Noto Sans Bold"],
                 "text-max-width": 6.25,
-                "text-size": ["interpolate", ["linear"], ["zoom"], 2, 9, 5, 17],
-                "visibility": "none"
+                "text-size": ["interpolate", ["linear"], ["zoom"], 2, 9, 5, 17]
             },
             "paint": {
                 "text-color": "#000",
@@ -3424,8 +3408,7 @@
                 ],
                 "text-font": ["Noto Sans Bold"],
                 "text-max-width": 6.25,
-                "text-size": ["interpolate", ["linear"], ["zoom"], 1, 9, 4, 17],
-                "visibility": "none"
+                "text-size": ["interpolate", ["linear"], ["zoom"], 1, 9, 4, 17]
             },
             "paint": {
                 "text-color": "#000",
