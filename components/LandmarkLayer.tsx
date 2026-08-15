@@ -1,3 +1,4 @@
+// LandmarkLayer.tsx
 import React from "react";
 import MapLibreGL from "@maplibre/maplibre-react-native";
 import { FeatureCollection, Geometry, GeoJsonProperties } from "geojson";

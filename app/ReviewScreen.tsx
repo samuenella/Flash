@@ -1,3 +1,4 @@
+// ReviewScreen.tsx
 import {
 	StyleSheet,
 	Text,
@@ -15,7 +16,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
 import { icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
-import { fonts } from "@/constants/fonts";
 import OptionsPage from "@/components/OptionsPage";
 import ReviewCard from "@/components/ReviewCard";
 import { useAudio } from "@/context/AudioContext";
