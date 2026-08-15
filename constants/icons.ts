@@ -17,4 +17,5 @@ export const icons = {
 	about_button: require("@/assets/icons/about_button.png"),
 	leaderboard_button: require("@/assets/icons/leaderboard_button.png"),
 	banner: require("@/assets/icons/banner.png"),
+	submit_button: require("@/assets/icons/submit_button_s.png"),
 };

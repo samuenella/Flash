@@ -1,6 +1,6 @@
 // LandmarkLayer.tsx
 import React from "react";
-import MapLibreGL from "@maplibre/maplibre-react-native";
+import { Layer, GeoJSONSource } from "@maplibre/maplibre-react-native";
 import { FeatureCollection, Geometry, GeoJsonProperties } from "geojson";
 import landmarksGeoJSON from "@/constants/landmarksGeoJSON";
 
@@ -21,13 +21,11 @@ export default function LandmarkLayer({
 	};
 
 	return (
-		<MapLibreGL.ShapeSource
-			id="selected-building"
-			shape={selectedFeatureCollection}
-		>
-			<MapLibreGL.FillExtrusionLayer
+		<GeoJSONSource id="selected-building" data={selectedFeatureCollection}>
+			<Layer
+				type="fill-extrusion"
 				id="highlight-building"
-				aboveLayerID="building-3d"
+				afterId="building-3d"
 				style={{
 					fillExtrusionColor: "#dbad40", // highlight color
 					fillExtrusionHeight: ["get", "render_height"],
@@ -35,6 +33,6 @@ export default function LandmarkLayer({
 					fillExtrusionOpacity: highlightLandmark ? 0.7 : 0,
 				}}
 			/>
-		</MapLibreGL.ShapeSource>
+		</GeoJSONSource>
 	);
 }

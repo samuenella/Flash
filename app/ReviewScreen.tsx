@@ -64,6 +64,58 @@ export default function ReviewScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View style={styles.page}>
+				{/* Score and Time Display */}
+				<View
+					style={{
+						marginTop: insets.top + 5,
+						paddingHorizontal: 10,
+						marginBottom: 10,
+						justifyContent: "center",
+						alignItems: "center",
+						backgroundColor: colors.background,
+						borderRadius: 10,
+					}}
+				>
+					{/* Score Display */}
+					<Text
+						style={{
+							fontSize: width < 600 ? 40 : 40 * 1.25,
+							fontWeight: "bold",
+							color: colors.text,
+						}}
+					>
+						Score
+					</Text>
+					<Text
+						style={{
+							fontSize: width < 600 ? 30 : 30 * 1.25,
+							fontWeight: "bold",
+							color: colors.text,
+						}}
+					>
+						{totalScore} / {scoreArray.length}
+					</Text>
+
+					{/* Time taken Display */}
+					<Text
+						style={{
+							fontSize: width < 600 ? 20 : 20 * 1.25,
+							fontWeight: "bold",
+							color: colors.text,
+							marginTop: 5,
+						}}
+					>
+						Time taken:{" "}
+						{/* Do not show time taken if it's tutorial */}
+						{timeTakenArray.length !== 3
+							? timeTakenArray
+									.reduce((a: number, b: number) => a + b, 0)
+									.toFixed(1)
+							: "N.A "}
+						s
+					</Text>
+				</View>
+
 				{/* Menu Button */}
 				<TouchableOpacity
 					style={[
@@ -113,57 +165,6 @@ export default function ReviewScreen() {
 						resizeMode="contain"
 					/>
 				</TouchableOpacity>
-
-				<View
-					style={{
-						marginTop: insets.top + 5,
-						paddingHorizontal: 10,
-						marginBottom: 10,
-						justifyContent: "center",
-						alignItems: "center",
-						backgroundColor: colors.background,
-						borderRadius: 10,
-					}}
-				>
-					{/* Score Display */}
-					<Text
-						style={{
-							fontSize: width < 600 ? 40 : 40 * 1.25,
-							fontWeight: "bold",
-							color: colors.text,
-						}}
-					>
-						Score
-					</Text>
-					<Text
-						style={{
-							fontSize: width < 600 ? 30 : 30 * 1.25,
-							fontWeight: "bold",
-							color: colors.text,
-						}}
-					>
-						{totalScore} / {scoreArray.length}
-					</Text>
-
-					{/* Time taken Display */}
-					<Text
-						style={{
-							fontSize: width < 600 ? 20 : 20 * 1.25,
-							fontWeight: "bold",
-							color: colors.text,
-							marginTop: 5,
-						}}
-					>
-						Time taken:{" "}
-						{/* Do not show time taken if it's tutorial */}
-						{timeTakenArray.length !== 3
-							? timeTakenArray
-									.reduce((a: number, b: number) => a + b, 0)
-									.toFixed(1)
-							: "-"}
-						s
-					</Text>
-				</View>
 
 				<ScrollView
 					style={styles.cardScrollView}
@@ -320,7 +321,7 @@ export default function ReviewScreen() {
 							>
 								Total time:{" "}
 								{timeTakenArray.length === 3
-									? "-"
+									? "N.A "
 									: timeTakenArray
 											.reduce(
 												(a: number, b: number) => a + b,
@@ -363,7 +364,9 @@ export default function ReviewScreen() {
 												color: colors.text,
 											}}
 										>
-											{time === 0 ? "-" : time.toFixed(2)}
+											{time === 0
+												? "N.A "
+												: time.toFixed(2)}
 											s
 										</Text>
 									</View>
@@ -459,7 +462,7 @@ export default function ReviewScreen() {
 									style={{
 										fontSize: width < 600 ? 20 : 20 * 1.25,
 										fontWeight: "bold",
-										width: "60%",
+										width: "50%",
 									}}
 									numberOfLines={1}
 									ellipsizeMode="tail"
@@ -475,7 +478,7 @@ export default function ReviewScreen() {
 									}}
 								>
 									{totalScore}
-									{"/10   "}
+									{"/10  "}
 									{timeTakenArray
 										.reduce(
 											(a: number, b: number) => a + b,
@@ -630,7 +633,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.hardWrong,
 	},
 	leaderboardCardView: {
-		width: "90%",
+		width: "100%",
 		justifyContent: "space-between",
 		borderRadius: 10,
 		paddingHorizontal: 10,

@@ -9,9 +9,16 @@ import {
 	Animated,
 	ScrollView,
 	useWindowDimensions,
+	NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MapLibreGL from "@maplibre/maplibre-react-native";
+import {
+	Map,
+	Camera,
+	type CameraRef,
+	type MapRef,
+	ViewStateChangeEvent,
+} from "@maplibre/maplibre-react-native";
 import { icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -28,8 +35,8 @@ export default function ReviewMapScreen() {
 	const { width, height } = useWindowDimensions();
 
 	// Map related declarations
-	const cameraRef = useRef<MapLibreGL.Camera>(null);
-	const mapRef = useRef<MapLibreGL.MapView>(null);
+	const cameraRef = useRef<CameraRef>(null);
+	const mapRef = useRef<MapRef>(null);
 	const rotationFrame = useRef<number | null>(null);
 	const rotationTimeout = useRef<number | null>(null);
 	const [heading, setHeading] = useState(0);
@@ -38,7 +45,6 @@ export default function ReviewMapScreen() {
 	const zoomLevel = useRef(16);
 
 	// Logic related declarations
-	const isProgrammaticMove = useRef(false);
 	const stopRotation = useRef(false);
 	const [highlightLandmark, setHighlightLandmark] = useState(true); // Review Map screen does not have toggle highlight, js keep here in case
 	const {
@@ -103,9 +109,9 @@ export default function ReviewMapScreen() {
 		const rotate = () => {
 			rotationHeading.current = (rotationHeading.current + 0.1) % 360;
 			setHeading(rotationHeading.current);
-			cameraRef.current?.setCamera({
-				heading: rotationHeading.current,
-				animationDuration: 100,
+			cameraRef.current?.setStop({
+				bearing: rotationHeading.current,
+				duration: 100,
 			});
 			rotationFrame.current = requestAnimationFrame(rotate);
 		};
@@ -126,11 +132,10 @@ export default function ReviewMapScreen() {
 		}
 	};
 
-	const onMapInteraction = () => {
-		//console.log("Map interaction detected");
-
-		if (!isProgrammaticMove.current) {
-			//console.log("User is interacting with the map");
+	const onMapInteraction = (
+		event: NativeSyntheticEvent<ViewStateChangeEvent>,
+	) => {
+		if (event.nativeEvent.userInteraction) {
 			stopRotation.current = true;
 			cancelRotationFrame();
 		}
@@ -138,31 +143,23 @@ export default function ReviewMapScreen() {
 
 	const initCamera = () => {
 		//console.log("Map finished loading, initializing camera");
-		isProgrammaticMove.current = true;
-		cameraRef.current?.setCamera({
-			centerCoordinate: [103.8198, 1.3521], // Singapore
-			zoomLevel: 9.2,
+		cameraRef.current?.setStop({
+			center: [103.8198, 1.3521], // Singapore
+			zoom: 9.2,
 			pitch: 45,
-			heading: 0,
-			animationDuration: 0,
+			bearing: 0,
+			duration: 0,
 		});
-		setTimeout(() => {
-			isProgrammaticMove.current = false;
-		}, 100);
 
 		setTimeout(() => {
 			//console.log("Starting intro zoom animation");
-			isProgrammaticMove.current = true;
-			cameraRef.current?.setCamera({
-				zoomLevel: 16,
+			cameraRef.current?.setStop({
+				zoom: 16,
 				pitch: 45,
-				animationDuration: 3000,
-				animationMode: "easeTo",
-				centerCoordinate: levelLandmarkList[index].coordinates,
+				duration: 3000,
+				easing: "fly",
+				center: levelLandmarkList[index].coordinates,
 			});
-			setTimeout(() => {
-				isProgrammaticMove.current = false;
-			}, 100);
 		}, 300);
 
 		rotationTimeout.current = setTimeout(() => {
@@ -171,7 +168,7 @@ export default function ReviewMapScreen() {
 	};
 
 	useEffect(() => {
-		initCamera();
+		initCamera(); // needed here since for every index change, the camera needs to be re-initialized to the new landmark's coordinates
 		return () => {
 			cancelRotationFrame();
 			clearRotationTimeout();
@@ -180,39 +177,28 @@ export default function ReviewMapScreen() {
 
 	return (
 		<View style={styles.page}>
-			<MapLibreGL.MapView
+			<Map
 				ref={mapRef}
 				style={styles.mapView}
 				mapStyle={require("@/assets/mapData.json")}
-				compassEnabled={false}
-				onDidFinishLoadingMap={() => {
-					isProgrammaticMove.current = true;
-					cameraRef.current?.setCamera({
-						centerCoordinate: [103.8198, 1.3521], // Singapore
-						zoomLevel: 9.2,
-						pitch: 45,
-						heading: 0,
-						animationDuration: 0,
-					});
-					setTimeout(() => {
-						isProgrammaticMove.current = false;
-					}, 100);
-				}}
+				compass={false}
+				logo={false}
+				onDidFinishLoadingMap={initCamera}
 				onRegionWillChange={onMapInteraction}
 				onRegionIsChanging={(region) => {
-					setHeading(region.properties.heading ?? 0);
-					pitch.current = region.properties.pitch ?? pitch.current;
+					setHeading(region.nativeEvent.bearing ?? 0);
+					pitch.current = region.nativeEvent.pitch ?? pitch.current;
 					zoomLevel.current =
-						region.properties.zoomLevel ?? zoomLevel.current;
+						region.nativeEvent.zoom ?? zoomLevel.current;
 				}}
 				onRegionDidChange={(region) => {
-					setHeading(region.properties.heading ?? heading);
-					pitch.current = region.properties.pitch ?? pitch.current;
+					setHeading(region.nativeEvent.bearing ?? heading);
+					pitch.current = region.nativeEvent.pitch ?? pitch.current;
 					zoomLevel.current =
-						region.properties.zoomLevel ?? zoomLevel.current;
+						region.nativeEvent.zoom ?? zoomLevel.current;
 				}}
 			>
-				<MapLibreGL.Camera ref={cameraRef} />
+				<Camera ref={cameraRef} />
 
 				<Building3dLayer highlightLandmark={highlightLandmark} />
 				<Building2dLayer />
@@ -220,7 +206,7 @@ export default function ReviewMapScreen() {
 					highlightLandmark={highlightLandmark}
 					landmarkID={levelLandmarkList[index].landmarkID}
 				/>
-			</MapLibreGL.MapView>
+			</Map>
 
 			<View style={[styles.topUIView, { top: insets.top + 15 }]}>
 				<TouchableOpacity
@@ -264,7 +250,7 @@ export default function ReviewMapScreen() {
 						}}
 					>
 						{timeTakenArray[index] === 0
-							? "-"
+							? "N.A "
 							: timeTakenArray[index]?.toFixed(1)}
 						s
 					</Text>
@@ -281,18 +267,18 @@ export default function ReviewMapScreen() {
 						cancelRotationFrame();
 						// Reset heading programmatically
 						if (heading !== 0) {
-							cameraRef.current?.setCamera({
-								heading: 0,
-								animationDuration: 300,
+							cameraRef.current?.setStop({
+								bearing: 0,
+								duration: 300,
+								easing: "fly",
 							});
 						} else {
-							cameraRef.current?.setCamera({
-								zoomLevel: 16,
+							cameraRef.current?.setStop({
+								zoom: 16,
 								pitch: 45,
-								animationDuration: 3000,
-								animationMode: "easeTo",
-								centerCoordinate:
-									levelLandmarkList[index].coordinates,
+								duration: 3000,
+								easing: "fly",
+								center: levelLandmarkList[index].coordinates,
 							});
 						}
 					}}

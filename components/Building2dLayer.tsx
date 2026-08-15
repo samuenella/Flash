@@ -1,15 +1,16 @@
 // Building2dLayer.tsx
 import React from "react";
-import MapLibreGL from "@maplibre/maplibre-react-native";
+import { Layer } from "@maplibre/maplibre-react-native";
 
 export default function Building2dLayer() {
 	return (
-		<MapLibreGL.FillLayer
+		<Layer
+			type="fill"
 			id="building-2d-overlay"
-			sourceID="openmaptiles"
-			sourceLayerID="building"
-			aboveLayerID="building"
-			maxZoomLevel={24}
+			source="openmaptiles"
+			source-layer="building"
+			afterId="building"
+			maxzoom={24}
 			style={{
 				fillColor: "#e1e0e0",
 				fillOpacity: 0.85,

@@ -11,9 +11,16 @@ import {
 	Animated,
 	Vibration,
 	useWindowDimensions,
+	NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MapLibreGL from "@maplibre/maplibre-react-native";
+import {
+	Map,
+	Camera,
+	type CameraRef,
+	type MapRef,
+	ViewStateChangeEvent,
+} from "@maplibre/maplibre-react-native";
 import { icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -43,8 +50,8 @@ export default function MapScreen() {
 	const { width, height } = useWindowDimensions();
 
 	// Map related declarations
-	const cameraRef = useRef<MapLibreGL.Camera>(null);
-	const mapRef = useRef<MapLibreGL.MapView>(null);
+	const cameraRef = useRef<CameraRef>(null);
+	const mapRef = useRef<MapRef>(null);
 	const rotationFrame = useRef<number | null>(null);
 	const rotationTimeout = useRef<number | null>(null);
 	const [heading, setHeading] = useState(0);
@@ -57,7 +64,6 @@ export default function MapScreen() {
 	const [countdown, setCountdown] = useState(30); // DEV
 	const intervalRef = useRef<number | null>(null);
 
-	const isProgrammaticMove = useRef(false);
 	const stopRotation = useRef(false);
 	const [highlightLandmark, setHighlightLandmark] = useState(true);
 	const totalLevels = useRef(10);
@@ -238,7 +244,12 @@ export default function MapScreen() {
 
 	const timeUpSequence = () => {
 		playSound("time_up");
+		Keyboard.dismiss();
 		setTimeUpScreen(true);
+		const endTime = Date.now();
+		timeTakenArray.current[levelNumber.current] =
+			(endTime - timeTakenArray.current[levelNumber.current]) / 1000; // convert to seconds
+		console.log(timeTakenArray.current);
 		setTimeout(() => {
 			router.replace({
 				pathname: "/ReviewScreen",
@@ -258,14 +269,12 @@ export default function MapScreen() {
 	};
 
 	const startAutoRotate = () => {
-		//console.log("Starting auto-rotation");
-
 		const rotate = () => {
 			rotationHeading.current = (rotationHeading.current + 0.1) % 360;
 			setHeading(rotationHeading.current);
-			cameraRef.current?.setCamera({
-				heading: rotationHeading.current,
-				animationDuration: 100,
+			cameraRef.current?.setStop({
+				bearing: rotationHeading.current,
+				duration: 0,
 			});
 			rotationFrame.current = requestAnimationFrame(rotate);
 		};
@@ -286,11 +295,10 @@ export default function MapScreen() {
 		}
 	};
 
-	const onMapInteraction = () => {
-		//console.log("Map interaction detected");
-
-		if (!isProgrammaticMove.current) {
-			//console.log("User is interacting with the map");
+	const onMapInteraction = (
+		event: NativeSyntheticEvent<ViewStateChangeEvent>,
+	) => {
+		if (event.nativeEvent.userInteraction) {
 			stopRotation.current = true;
 			cancelRotationFrame();
 		}
@@ -302,10 +310,7 @@ export default function MapScreen() {
 		const y = e.properties?.screenPointY;
 
 		// query without layer filter first
-		const features = await mapRef.current.queryRenderedFeaturesAtPoint([
-			x,
-			y,
-		]);
+		const features = await mapRef.current.queryRenderedFeatures([x, y]);
 
 		// console.log(features.features); DEV
 		// console.log(
@@ -317,32 +322,23 @@ export default function MapScreen() {
 
 	const initCamera = () => {
 		//console.log("Map finished loading, initializing camera");
-		isProgrammaticMove.current = true;
-		cameraRef.current?.setCamera({
-			centerCoordinate: [103.8198, 1.3521], // Singapore
-			zoomLevel: 9.2,
+		cameraRef.current?.setStop({
+			center: [103.8198, 1.3521], // Singapore
+			zoom: 9.2,
 			pitch: 45,
-			heading: 0,
-			animationDuration: 0,
+			bearing: 0,
 		});
-		setTimeout(() => {
-			isProgrammaticMove.current = false;
-		}, 100);
 
 		setTimeout(() => {
 			//console.log("Starting intro zoom animation");
-			isProgrammaticMove.current = true;
-			cameraRef.current?.setCamera({
-				zoomLevel: 16,
+			cameraRef.current?.setStop({
+				zoom: 16,
 				pitch: 45,
-				animationDuration: 3000,
-				animationMode: "easeTo",
-				centerCoordinate:
-					randomLandmarks.current[levelNumber.current].coordinates,
+				duration: 3000,
+				easing: "fly",
+				center: randomLandmarks.current[levelNumber.current]
+					.coordinates,
 			});
-			setTimeout(() => {
-				isProgrammaticMove.current = false;
-			}, 100);
 		}, 300);
 
 		rotationTimeout.current = setTimeout(() => {
@@ -393,28 +389,29 @@ export default function MapScreen() {
 			style={styles.page}
 			pointerEvents={isChangingLevel ? "none" : "auto"}
 		>
-			<MapLibreGL.MapView
+			<Map
 				ref={mapRef}
 				style={styles.mapView}
 				mapStyle={require("@/assets/mapData.json")}
-				compassEnabled={false}
+				compass={false}
+				logo={false}
 				onPress={onMapPress}
 				onDidFinishLoadingMap={initCamera}
 				onRegionWillChange={onMapInteraction}
 				onRegionIsChanging={(region) => {
-					setHeading(region.properties.heading ?? 0);
-					pitch.current = region.properties.pitch ?? pitch.current;
+					setHeading(region.nativeEvent.bearing ?? 0);
+					pitch.current = region.nativeEvent.pitch ?? pitch.current;
 					zoomLevel.current =
-						region.properties.zoomLevel ?? zoomLevel.current;
+						region.nativeEvent.zoom ?? zoomLevel.current;
 				}}
 				onRegionDidChange={(region) => {
-					setHeading(region.properties.heading ?? heading);
-					pitch.current = region.properties.pitch ?? pitch.current;
+					setHeading(region.nativeEvent.bearing ?? heading);
+					pitch.current = region.nativeEvent.pitch ?? pitch.current;
 					zoomLevel.current =
-						region.properties.zoomLevel ?? zoomLevel.current;
+						region.nativeEvent.zoom ?? zoomLevel.current;
 				}}
 			>
-				<MapLibreGL.Camera ref={cameraRef} />
+				<Camera ref={cameraRef} />
 
 				<Building3dLayer highlightLandmark={highlightLandmark} />
 				<Building2dLayer />
@@ -424,7 +421,7 @@ export default function MapScreen() {
 						randomLandmarks.current[levelNumber.current].landmarkID
 					}
 				/>
-			</MapLibreGL.MapView>
+			</Map>
 
 			<View style={[styles.topUIView, { top: insets.top + 15 }]}>
 				{/* Menu Button */}
@@ -485,19 +482,20 @@ export default function MapScreen() {
 						stopRotation.current = true;
 						cancelRotationFrame();
 						if (heading === 0) {
-							cameraRef.current?.setCamera({
-								zoomLevel: 16,
+							cameraRef.current?.setStop({
+								zoom: 16,
 								pitch: 45,
-								animationDuration: 3000,
-								animationMode: "easeTo",
-								centerCoordinate:
-									randomLandmarks.current[levelNumber.current]
-										.coordinates,
+								duration: 3000,
+								easing: "fly",
+								center: randomLandmarks.current[
+									levelNumber.current
+								].coordinates,
 							});
 						} else {
-							cameraRef.current?.setCamera({
-								heading: 0,
-								animationDuration: 300,
+							cameraRef.current?.setStop({
+								bearing: 0,
+								duration: 300,
+								easing: "fly",
 							});
 						}
 						Keyboard.dismiss();
@@ -538,11 +536,11 @@ export default function MapScreen() {
 					]}
 					onPress={() => {
 						playSound("button_press");
-						cameraRef.current?.setCamera({
+						cameraRef.current?.setStop({
 							pitch: pitch.current,
-							zoomLevel: zoomLevel.current,
-							heading: heading,
-							animationDuration: 0,
+							zoom: zoomLevel.current,
+							bearing: heading,
+							duration: 0,
 						});
 						setHighlightLandmark(!highlightLandmark);
 					}}
@@ -575,6 +573,27 @@ export default function MapScreen() {
 				>
 					<Image
 						source={icons.skip_button}
+						style={{
+							width: width * 0.12,
+							height: width * 0.12,
+						}}
+						resizeMode="contain"
+					/>
+				</TouchableOpacity>
+
+				{/* Submit Button */}
+				<TouchableOpacity
+					style={[
+						styles.submitTouchable,
+						{ width: width * 0.12, height: width * 0.12 },
+					]}
+					onPress={() => {
+						playSound("button_press");
+						handleSubmit();
+					}}
+				>
+					<Image
+						source={icons.submit_button}
 						style={{
 							width: width * 0.12,
 							height: width * 0.12,
@@ -784,6 +803,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 	},
 	skipTouchable: {
+		backgroundColor: colors.primary,
+		borderRadius: 999,
+		borderColor: "#000000",
+		borderWidth: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	submitTouchable: {
 		backgroundColor: colors.primary,
 		borderRadius: 999,
 		borderColor: "#000000",

@@ -44,6 +44,10 @@ export default function CreditsPage({ onClose }: any) {
 			name: "Ajitesh",
 			link: "https://github.com/AjitProg",
 		},
+		{
+			name: "Gary",
+			link: "https://github.com/Jerrybeanz",
+		},
 	];
 
 	const { playSound } = useAudio();

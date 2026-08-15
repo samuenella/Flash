@@ -1,6 +1,6 @@
 // Building3dLayer.tsx
 import React from "react";
-import MapLibreGL from "@maplibre/maplibre-react-native";
+import { Layer } from "@maplibre/maplibre-react-native";
 
 export default function Building3dLayer({
 	highlightLandmark,
@@ -8,10 +8,11 @@ export default function Building3dLayer({
 	highlightLandmark: boolean;
 }) {
 	return (
-		<MapLibreGL.FillExtrusionLayer
+		<Layer
+			type="fill-extrusion"
 			id="building-3d"
-			sourceID="openmaptiles"
-			sourceLayerID="building"
+			source="openmaptiles"
+			source-layer="building"
 			style={{
 				fillExtrusionColor: "#e1e0e0",
 				fillExtrusionHeight: ["get", "render_height"],

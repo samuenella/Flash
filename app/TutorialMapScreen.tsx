@@ -11,9 +11,16 @@ import {
 	Animated,
 	Vibration,
 	useWindowDimensions,
+	NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import MapLibreGL from "@maplibre/maplibre-react-native";
+import {
+	Map,
+	Camera,
+	type CameraRef,
+	type MapRef,
+	ViewStateChangeEvent,
+} from "@maplibre/maplibre-react-native";
 import { icons } from "@/constants/icons";
 import { colors } from "@/constants/colors";
 import { useRouter } from "expo-router";
@@ -33,8 +40,8 @@ export default function MapScreen() {
 	const { width, height } = useWindowDimensions();
 
 	// Map related declarations
-	const cameraRef = useRef<MapLibreGL.Camera>(null);
-	const mapRef = useRef<MapLibreGL.MapView>(null);
+	const cameraRef = useRef<CameraRef>(null);
+	const mapRef = useRef<MapRef>(null);
 	const rotationFrame = useRef<number | null>(null);
 	const rotationTimeout = useRef<number | null>(null);
 	const [heading, setHeading] = useState(0);
@@ -45,7 +52,6 @@ export default function MapScreen() {
 	// Logic related declarations
 	const [countdown, setCountdown] = useState(30);
 	const intervalRef = useRef<number | null>(null);
-	const isProgrammaticMove = useRef(false);
 	const stopRotation = useRef(false);
 	const [highlightLandmark, setHighlightLandmark] = useState(true);
 	const tutorialLandmarks = useRef([
@@ -180,6 +186,7 @@ export default function MapScreen() {
 
 	const timeUpSequence = () => {
 		playSound("time_up");
+		Keyboard.dismiss();
 		setTimeUpScreen(true);
 		if (tutorialSequenceMain === 15) {
 			setTutorialSequenceMain((prev) => prev + 1);
@@ -192,9 +199,9 @@ export default function MapScreen() {
 		const rotate = () => {
 			rotationHeading.current = (rotationHeading.current + 0.1) % 360;
 			setHeading(rotationHeading.current);
-			cameraRef.current?.setCamera({
-				heading: rotationHeading.current,
-				animationDuration: 100,
+			cameraRef.current?.setStop({
+				bearing: rotationHeading.current,
+				duration: 100,
 			});
 			rotationFrame.current = requestAnimationFrame(rotate);
 		};
@@ -215,43 +222,33 @@ export default function MapScreen() {
 		}
 	};
 
-	const onMapInteraction = () => {
-		//console.log("Map interaction detected");
-
-		if (!isProgrammaticMove.current) {
-			//console.log("User is interacting with the map");
+	const onMapInteraction = (
+		event: NativeSyntheticEvent<ViewStateChangeEvent>,
+	) => {
+		if (event.nativeEvent.userInteraction) {
 			stopRotation.current = true;
-
 			cancelRotationFrame();
 		}
 	};
 
 	const initCamera = () => {
-		isProgrammaticMove.current = true;
-		cameraRef.current?.setCamera({
-			centerCoordinate: [103.8198, 1.3521], // Singapore
-			zoomLevel: 9.2,
+		cameraRef.current?.setStop({
+			center: [103.8198, 1.3521], // Singapore
+			zoom: 9.2,
 			pitch: 45,
-			heading: 0,
-			animationDuration: 0,
+			bearing: 0,
+			duration: 0,
 		});
-		setTimeout(() => {
-			isProgrammaticMove.current = false;
-		}, 100);
 
 		setTimeout(() => {
-			isProgrammaticMove.current = true;
-			cameraRef.current?.setCamera({
-				zoomLevel: 16,
+			cameraRef.current?.setStop({
+				zoom: 16,
 				pitch: 45,
-				animationDuration: 3000,
-				animationMode: "easeTo",
-				centerCoordinate:
-					tutorialLandmarks.current[levelNumber.current].coordinates,
+				duration: 3000,
+				easing: "fly",
+				center: tutorialLandmarks.current[levelNumber.current]
+					.coordinates,
 			});
-			setTimeout(() => {
-				isProgrammaticMove.current = false;
-			}, 100);
 		}, 300);
 
 		rotationTimeout.current = setTimeout(() => {
@@ -341,26 +338,27 @@ export default function MapScreen() {
 
 	return (
 		<View style={styles.page}>
-			<MapLibreGL.MapView
+			<Map
 				ref={mapRef}
 				style={styles.mapView}
 				mapStyle={require("@/assets/mapData.json")}
-				compassEnabled={false}
+				compass={false}
+				logo={false}
 				onRegionWillChange={onMapInteraction}
 				onRegionIsChanging={(region) => {
-					setHeading(region.properties.heading ?? 0);
-					pitch.current = region.properties.pitch ?? pitch.current;
+					setHeading(region.nativeEvent.bearing ?? 0);
+					pitch.current = region.nativeEvent.pitch ?? pitch.current;
 					zoomLevel.current =
-						region.properties.zoomLevel ?? zoomLevel.current;
+						region.nativeEvent.zoom ?? zoomLevel.current;
 				}}
 				onRegionDidChange={(region) => {
-					setHeading(region.properties.heading ?? heading);
-					pitch.current = region.properties.pitch ?? pitch.current;
+					setHeading(region.nativeEvent.bearing ?? heading);
+					pitch.current = region.nativeEvent.pitch ?? pitch.current;
 					zoomLevel.current =
-						region.properties.zoomLevel ?? zoomLevel.current;
+						region.nativeEvent.zoom ?? zoomLevel.current;
 				}}
 			>
-				<MapLibreGL.Camera ref={cameraRef} />
+				<Camera ref={cameraRef} />
 
 				<Building3dLayer highlightLandmark={highlightLandmark} />
 				<Building2dLayer />
@@ -371,7 +369,7 @@ export default function MapScreen() {
 							.landmarkID
 					}
 				/>
-			</MapLibreGL.MapView>
+			</Map>
 
 			<View style={[styles.topUIView, { top: insets.top + 15 }]}>
 				{tutorialSequenceMain === 9 && (
@@ -457,20 +455,20 @@ export default function MapScreen() {
 						cancelRotationFrame();
 						// Reset heading programmatically
 						if (heading === 0) {
-							cameraRef.current?.setCamera({
-								zoomLevel: 16,
+							cameraRef.current?.setStop({
+								zoom: 16,
 								pitch: 45,
-								animationDuration: 3000,
-								animationMode: "easeTo",
-								centerCoordinate:
-									tutorialLandmarks.current[
-										levelNumber.current
-									].coordinates,
+								duration: 3000,
+								easing: "fly",
+								center: tutorialLandmarks.current[
+									levelNumber.current
+								].coordinates,
 							});
 						} else {
-							cameraRef.current?.setCamera({
-								heading: 0,
-								animationDuration: 300,
+							cameraRef.current?.setStop({
+								bearing: 0,
+								duration: 300,
+								easing: "fly",
 							});
 						}
 						Keyboard.dismiss();
@@ -504,93 +502,152 @@ export default function MapScreen() {
 				]}
 			>
 				{/* 3D toggle button */}
-				{tutorialSequenceMain >= 7 && tutorialSequenceSub[7] >= 2 && (
-					<TouchableOpacity
-						style={[
-							styles.threeDTouchable,
-							{
-								width: width * 0.12,
-								height: width * 0.12,
-								zIndex:
-									tutorialSequenceMain === 7 &&
-									tutorialSequenceSub[7] === 2
-										? 999
-										: 0,
-							},
-						]}
-						onPress={() => {
-							playSound("button_press");
-							if (
+				<TouchableOpacity
+					style={[
+						styles.threeDTouchable,
+						{
+							width: width * 0.12,
+							height: width * 0.12,
+							zIndex:
 								tutorialSequenceMain === 7 &&
 								tutorialSequenceSub[7] === 2
-							) {
-								setTutorialSequenceMain((prev) => prev + 2);
-							} else if (tutorialSequenceMain === 8) {
-								setTutorialSequenceMain((prev) => prev + 1);
-							}
-							cameraRef.current?.setCamera({
-								pitch: pitch.current,
-								zoomLevel: zoomLevel.current,
-								heading: heading,
-								animationDuration: 0,
-							});
-							setHighlightLandmark(!highlightLandmark);
+									? 999
+									: 0,
+							opacity:
+								tutorialSequenceMain >= 7 &&
+								tutorialSequenceSub[7] >= 2
+									? 1
+									: 0,
+							pointerEvents:
+								tutorialSequenceMain >= 7 &&
+								tutorialSequenceSub[7] >= 2
+									? "auto"
+									: "none",
+						},
+					]}
+					onPress={() => {
+						playSound("button_press");
+						if (
+							tutorialSequenceMain === 7 &&
+							tutorialSequenceSub[7] === 2
+						) {
+							setTutorialSequenceMain((prev) => prev + 2);
+						} else if (tutorialSequenceMain === 8) {
+							setTutorialSequenceMain((prev) => prev + 1);
+						}
+						cameraRef.current?.setStop({
+							pitch: pitch.current,
+							zoom: zoomLevel.current,
+							bearing: heading,
+							duration: 0,
+						});
+						setHighlightLandmark(!highlightLandmark);
+					}}
+				>
+					<Image
+						source={
+							highlightLandmark
+								? icons.highlight_landmark_off
+								: icons.highlight_landmark_on
+						}
+						style={{
+							width: width * 0.12,
+							height: width * 0.12,
 						}}
-					>
-						<Image
-							source={
-								highlightLandmark
-									? icons.highlight_landmark_off
-									: icons.highlight_landmark_on
-							}
-							style={{
-								width: width * 0.12,
-								height: width * 0.12,
-							}}
-							resizeMode="contain"
-						/>
-					</TouchableOpacity>
-				)}
+						resizeMode="contain"
+					/>
+				</TouchableOpacity>
 
 				{/* Skip button */}
-				{tutorialSequenceMain >= 10 && tutorialSequenceSub[10] >= 2 && (
-					<TouchableOpacity
-						style={[
-							styles.skipTouchable,
-							{
-								width: width * 0.12,
-								height: width * 0.12,
-								zIndex:
-									tutorialSequenceMain === 10 &&
-									tutorialSequenceSub[10] === 2
-										? 999
-										: 0,
-							},
-						]}
-						onPress={() => {
-							playSound("button_press");
-							setSkipScreen(true);
-							if (tutorialSequenceMain === 11) {
-								setTutorialSequenceMain((prev) => prev + 1);
-							}
-							if (
+				<TouchableOpacity
+					style={[
+						styles.skipTouchable,
+						{
+							width: width * 0.12,
+							height: width * 0.12,
+							zIndex:
 								tutorialSequenceMain === 10 &&
 								tutorialSequenceSub[10] === 2
-							) {
-								setTutorialSequenceMain((prev) => prev + 2);
-							}
+									? 999
+									: 0,
+							opacity:
+								tutorialSequenceMain >= 10 &&
+								tutorialSequenceSub[10] >= 2
+									? 1
+									: 0,
+							pointerEvents:
+								tutorialSequenceMain >= 10 &&
+								tutorialSequenceSub[10] >= 2
+									? "auto"
+									: "none",
+						},
+					]}
+					onPress={() => {
+						playSound("button_press");
+						setSkipScreen(true);
+						if (tutorialSequenceMain === 11) {
+							setTutorialSequenceMain((prev) => prev + 1);
+						}
+						if (
+							tutorialSequenceMain === 10 &&
+							tutorialSequenceSub[10] === 2
+						) {
+							setTutorialSequenceMain((prev) => prev + 2);
+						}
+					}}
+				>
+					<Image
+						source={icons.skip_button}
+						style={{
+							width: width * 0.12,
+							height: width * 0.12,
 						}}
-					>
-						<Image
-							source={icons.skip_button}
-							style={{
-								width: width * 0.12,
-								height: width * 0.12,
-							}}
-							resizeMode="contain"
-						/>
-					</TouchableOpacity>
-				)}
+						resizeMode="contain"
+					/>
+				</TouchableOpacity>
+
+				{/* Submit Button */}
+				<TouchableOpacity
+					style={[
+						styles.submitTouchable,
+						{
+							width: width * 0.12,
+							height: width * 0.12,
+							zIndex:
+								tutorialSequenceMain === 2 &&
+								tutorialSequenceSub[2] === 1
+									? 999
+									: 0,
+							opacity:
+								(tutorialSequenceMain >= 2 &&
+									tutorialSequenceMain <= 5 &&
+									tutorialSequenceSub[2] >= 1) ||
+								tutorialSequenceMain >= 15
+									? 1
+									: 0,
+							pointerEvents:
+								(tutorialSequenceMain >= 2 &&
+									tutorialSequenceMain <= 5 &&
+									tutorialSequenceSub[2] >= 1) ||
+								tutorialSequenceMain >= 15
+									? "auto"
+									: "none",
+						},
+					]}
+					onPress={() => {
+						playSound("button_press");
+						handleSubmit();
+					}}
+				>
+					<Image
+						source={icons.submit_button}
+						style={{
+							width: width * 0.12,
+							height: width * 0.12,
+						}}
+						resizeMode="contain"
+					/>
+				</TouchableOpacity>
 			</View>
 
 			<KeyboardAvoidingView
@@ -808,9 +865,9 @@ export default function MapScreen() {
 					)}
 					{tutorialSequenceSub[2] === 1 && (
 						<TutorialCard
-							text="Key in 'Marina Bay Sands' here."
+							text="Key in 'Marina Bay Sands', and press the submit button to continue."
 							positionStyle={{
-								bottom: insets.bottom + height * 0.08,
+								bottom: insets.bottom + height * 0.15,
 							}}
 						/>
 					)}
@@ -1087,6 +1144,14 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 	},
 	skipTouchable: {
+		backgroundColor: colors.primary,
+		borderRadius: 999,
+		borderColor: "#000000",
+		borderWidth: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	submitTouchable: {
 		backgroundColor: colors.primary,
 		borderRadius: 999,
 		borderColor: "#000000",

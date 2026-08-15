@@ -89,6 +89,57 @@ export default function ReviewScreen() {
 				></View>
 			)}
 
+			{/* Score and Time Display */}
+			<View
+				style={{
+					marginTop: insets.top + 5,
+					paddingHorizontal: 10,
+					marginBottom: 10,
+					justifyContent: "center",
+					alignItems: "center",
+					backgroundColor: colors.background,
+					borderRadius: 10,
+					zIndex:
+						tutorialSequenceMain === 1 &&
+						tutorialSequenceSub[1] === 1
+							? 999
+							: 0,
+				}}
+			>
+				{/* Score Display */}
+				<Text
+					style={{
+						fontSize: width < 600 ? 40 : 40 * 1.25,
+						fontWeight: "bold",
+						color: colors.text,
+					}}
+				>
+					Score
+				</Text>
+				<Text
+					style={{
+						fontSize: width < 600 ? 30 : 30 * 1.25,
+						fontWeight: "bold",
+						color: colors.text,
+					}}
+				>
+					{scoreArray.reduce((a: any, b: any) => a + b, 0)} /{" "}
+					{scoreArray.length}
+				</Text>
+
+				{/* Time taken Display */}
+				<Text
+					style={{
+						fontSize: width < 600 ? 20 : 20 * 1.25,
+						fontWeight: "bold",
+						color: colors.text,
+						marginTop: 5,
+					}}
+				>
+					Time taken: N.A s
+				</Text>
+			</View>
+
 			{/* Menu Button */}
 			<TouchableOpacity
 				style={[
@@ -151,56 +202,6 @@ export default function ReviewScreen() {
 					resizeMode="contain"
 				/>
 			</TouchableOpacity>
-
-			<View
-				style={{
-					marginTop: insets.top + 5,
-					paddingHorizontal: 10,
-					marginBottom: 10,
-					justifyContent: "center",
-					alignItems: "center",
-					backgroundColor: colors.background,
-					borderRadius: 10,
-					zIndex:
-						tutorialSequenceMain === 1 &&
-						tutorialSequenceSub[1] === 1
-							? 999
-							: 0,
-				}}
-			>
-				{/* Score Display */}
-				<Text
-					style={{
-						fontSize: width < 600 ? 40 : 40 * 1.25,
-						fontWeight: "bold",
-						color: colors.text,
-					}}
-				>
-					Score
-				</Text>
-				<Text
-					style={{
-						fontSize: width < 600 ? 30 : 30 * 1.25,
-						fontWeight: "bold",
-						color: colors.text,
-					}}
-				>
-					{scoreArray.reduce((a: any, b: any) => a + b, 0)} /{" "}
-					{scoreArray.length}
-				</Text>
-
-				{/* Time taken Display */}
-				<Text
-					style={{
-						fontSize: width < 600 ? 20 : 20 * 1.25,
-						fontWeight: "bold",
-						color: colors.text,
-						marginTop: 5,
-					}}
-				>
-					Time taken: -s
-				</Text>
-			</View>
 
 			{/**Replacement review card */}
 			{tutorialSequenceMain === 5 && tutorialSequenceSub[5] === 0 && (
@@ -381,7 +382,7 @@ export default function ReviewScreen() {
 						>
 							Total time:{" "}
 							{timeTakenArray.length === 3
-								? "-"
+								? "N.A "
 								: timeTakenArray
 										.reduce(
 											(a: number, b: number) => a + b,
@@ -417,7 +418,7 @@ export default function ReviewScreen() {
 										color: colors.text,
 									}}
 								>
-									{time !== 0 ? time.toFixed(2) : "-"}s
+									{time !== 0 ? time.toFixed(2) : "N.A "}s
 								</Text>
 							</View>
 						))}
