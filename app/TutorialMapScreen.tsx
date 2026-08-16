@@ -447,7 +447,20 @@ export default function MapScreen() {
 				<TouchableOpacity
 					style={[
 						styles.compassTouchable,
-						{ width: width * 0.12, height: width * 0.12 },
+						{
+							width: width * 0.12,
+							height: width * 0.12,
+							zIndex:
+								tutorialSequenceMain === 14 &&
+								tutorialSequenceSub[14] === 1
+									? 999
+									: 0,
+							pointerEvents:
+								tutorialSequenceMain === 14 &&
+								tutorialSequenceSub[14] === 1
+									? "none"
+									: "auto",
+						},
 					]}
 					onPress={() => {
 						playSound("button_press");
@@ -1012,7 +1025,7 @@ export default function MapScreen() {
 					style={styles.blackTranslucentView}
 					activeOpacity={1}
 					onPress={() => {
-						if (tutorialSequenceSub[14] < 1) {
+						if (tutorialSequenceSub[14] < 2) {
 							setTutorialSequenceSub((prev) => {
 								const temp = [...prev];
 								temp[14] += 1;
@@ -1030,6 +1043,14 @@ export default function MapScreen() {
 						/>
 					)}
 					{tutorialSequenceSub[14] === 1 && (
+						<TutorialCard
+							text="If you need to reset the camera, simply press the compass button twice."
+							positionStyle={{
+								top: insets.top + height * 0.09,
+							}}
+						/>
+					)}
+					{tutorialSequenceSub[14] === 2 && (
 						<TutorialCard
 							text="Now you try!"
 							positionStyle={{ bottom: insets.bottom + 50 }}
