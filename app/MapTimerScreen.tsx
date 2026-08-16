@@ -528,6 +528,28 @@ export default function MapScreen() {
 					{ bottom: insets.bottom + height * 0.08 },
 				]}
 			>
+				{/* Skip Button */}
+				<TouchableOpacity
+					style={[
+						styles.skipTouchable,
+						{ width: width * 0.12, height: width * 0.12 },
+					]}
+					onPress={() => {
+						playSound("button_press");
+						setSkipScreen(true);
+						//saveGeoJSONToFile(tempLandmarksArray, landmarksFile); // DEV
+					}}
+				>
+					<Image
+						source={icons.skip_button}
+						style={{
+							width: width * 0.12,
+							height: width * 0.12,
+						}}
+						resizeMode="contain"
+					/>
+				</TouchableOpacity>
+
 				{/* 3D toggle button */}
 				<TouchableOpacity
 					style={[
@@ -551,28 +573,6 @@ export default function MapScreen() {
 								? icons.highlight_landmark_off
 								: icons.highlight_landmark_on
 						}
-						style={{
-							width: width * 0.12,
-							height: width * 0.12,
-						}}
-						resizeMode="contain"
-					/>
-				</TouchableOpacity>
-
-				{/* Skip Button */}
-				<TouchableOpacity
-					style={[
-						styles.skipTouchable,
-						{ width: width * 0.12, height: width * 0.12 },
-					]}
-					onPress={() => {
-						playSound("button_press");
-						setSkipScreen(true);
-						//saveGeoJSONToFile(tempLandmarksArray, landmarksFile); // DEV
-					}}
-				>
-					<Image
-						source={icons.skip_button}
 						style={{
 							width: width * 0.12,
 							height: width * 0.12,

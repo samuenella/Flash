@@ -514,6 +514,54 @@ export default function MapScreen() {
 					{ bottom: insets.bottom + height * 0.08 },
 				]}
 			>
+				{/* Skip button */}
+				<TouchableOpacity
+					style={[
+						styles.skipTouchable,
+						{
+							width: width * 0.12,
+							height: width * 0.12,
+							zIndex:
+								tutorialSequenceMain === 10 &&
+								tutorialSequenceSub[10] === 2
+									? 999
+									: 0,
+							opacity:
+								tutorialSequenceMain >= 10 &&
+								tutorialSequenceSub[10] >= 2
+									? 1
+									: 0,
+							pointerEvents:
+								tutorialSequenceMain >= 10 &&
+								tutorialSequenceSub[10] >= 2
+									? "auto"
+									: "none",
+						},
+					]}
+					onPress={() => {
+						playSound("button_press");
+						setSkipScreen(true);
+						if (tutorialSequenceMain === 11) {
+							setTutorialSequenceMain((prev) => prev + 1);
+						}
+						if (
+							tutorialSequenceMain === 10 &&
+							tutorialSequenceSub[10] === 2
+						) {
+							setTutorialSequenceMain((prev) => prev + 2);
+						}
+					}}
+				>
+					<Image
+						source={icons.skip_button}
+						style={{
+							width: width * 0.12,
+							height: width * 0.12,
+						}}
+						resizeMode="contain"
+					/>
+				</TouchableOpacity>
+
 				{/* 3D toggle button */}
 				<TouchableOpacity
 					style={[
@@ -563,54 +611,6 @@ export default function MapScreen() {
 								? icons.highlight_landmark_off
 								: icons.highlight_landmark_on
 						}
-						style={{
-							width: width * 0.12,
-							height: width * 0.12,
-						}}
-						resizeMode="contain"
-					/>
-				</TouchableOpacity>
-
-				{/* Skip button */}
-				<TouchableOpacity
-					style={[
-						styles.skipTouchable,
-						{
-							width: width * 0.12,
-							height: width * 0.12,
-							zIndex:
-								tutorialSequenceMain === 10 &&
-								tutorialSequenceSub[10] === 2
-									? 999
-									: 0,
-							opacity:
-								tutorialSequenceMain >= 10 &&
-								tutorialSequenceSub[10] >= 2
-									? 1
-									: 0,
-							pointerEvents:
-								tutorialSequenceMain >= 10 &&
-								tutorialSequenceSub[10] >= 2
-									? "auto"
-									: "none",
-						},
-					]}
-					onPress={() => {
-						playSound("button_press");
-						setSkipScreen(true);
-						if (tutorialSequenceMain === 11) {
-							setTutorialSequenceMain((prev) => prev + 1);
-						}
-						if (
-							tutorialSequenceMain === 10 &&
-							tutorialSequenceSub[10] === 2
-						) {
-							setTutorialSequenceMain((prev) => prev + 2);
-						}
-					}}
-				>
-					<Image
-						source={icons.skip_button}
 						style={{
 							width: width * 0.12,
 							height: width * 0.12,
